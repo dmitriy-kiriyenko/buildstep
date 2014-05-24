@@ -81,4 +81,5 @@ onexit() {
 trap onexit EXIT
 
 # Run the given command
+[ -d '/app/.profile.d' ] && source /app/.profile.d/*.sh
 exec bash -c "$*"
