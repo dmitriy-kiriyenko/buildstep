@@ -14,4 +14,7 @@ ONBUILD RUN mkdir -p /app
 ONBUILD ADD . /app
 ONBUILD RUN /build/builder
 
+ENV HOME /app
+WORKDIR $HOME
+
 ENTRYPOINT ["/run.sh"]
