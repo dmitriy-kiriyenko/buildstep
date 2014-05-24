@@ -55,7 +55,16 @@ start_commands() {
 
 # The conventional environment variables must be gathered and parsed
 # then used to run socats.
-env | grep '_TCP=' | sed 's/.*_PORT_\([0-9]*\)_TCP=tcp:\/\/\(.*\):\(.*\)/socat -ls TCP4-LISTEN:\1,fork,reuseaddr TCP4:\2:\3/' | start_commands
+
+to_link_tuple() {
+  sed 's/.*_PORT_\([0-9]*\)_TCP=tcp:\/\/\(.*\):\(.*\)/\1,\2,\3/'
+}
+
+to_socat_call() {
+  sed 's/\(.*\),\(.*\),\(.*\)/socat -ls TCP4-LISTEN:\1,fork,reuseaddr TCP4:\2:\3/'
+}
+
+env | grep '_TCP=' | to_link_tuple | sort | uniq | to_socat_call | start_commands
 
 # ## Cleanup
 
