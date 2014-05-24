@@ -1,54 +1,82 @@
-# Buildstep
+tutum/buildstep
+===============
 
-Heroku-style application builds using Docker and Buildpacks. Used by [Dokku](https://github.com/progrium/dokku) to make a mini-Heroku.
-
-## Requirements
-
- * Docker
- * Git
-
-## Supported Buildpacks
-
-Buildpacks should generally just work, but many of them make assumptions about their environment. So Buildstep has a [list of officially supported buildpacks](https://github.com/progrium/buildstep/blob/master/stack/buildpacks.txt) that are built-in and ready to be used.
+Base docker image to create containers from app code using Heroku's buildpacks.
 
 
-## Building Buildstep
+Supported languages
+-------------------
 
-The buildstep script uses a buildstep base container that needs to be built. It must be created before
-you can use the buildstep script. To create it, run:
+Check https://github.com/progrium/buildstep#supported-buildpacks for a list of buildpacks
+supported.
 
-    $ make build
 
-This will create a container called `progrium/buildstep` that contains all supported buildpacks and the
-builder script that will actually perform the build using the buildpacks.
+Usage
+-----
 
-## Building an App
+Create a `Dockerfile` similar to the following in your application code folder 
+(this example is for a typical Django app):
 
-Running the buildstep script will take an application tar via STDIN and an application container name as
-an argument. It will put the application in a new container based on `progrium/buildstep` with the specified name. 
-Then it runs the builder script inside the container. 
+	FROM tutum/buildstep
+	EXPOSE 80
+	CMD ["python", "manage.py", "runserver", "80"]
 
-    $ cat myapp.tar | ./buildstep myapp
-    
-If you didn't already have an application tar, you can create one on the fly.
+Modify the `EXPOSE` and `CMD` directives with the port to be exposed and the command
+used to launch your application respectively.
 
-    $ tar cC /path/to/your/app . | ./buildstep myapp
+Then, execute the following to build the image:
 
-The resulting container has a built app ready to go. The builder script also parses the Procfile and produces
-a starter script that takes a process type. Run your app with:
+	docker build -t myuser/myapp .
 
-    $ docker run -d myapp /bin/bash -c "/start web"
+This will create an image named `myuser/myapp` with your application ready to go.
+To launch it, just type:
 
-## Adding Buildpacks
+	docker run -d -p 80 myuser/myapp
 
-Buildstep needs to support a buildpack by installing packages needed to run the build and to run the application
-it builds. For example, the Python buildpack would need Python to be installed.
+Easy!
 
-To add a new buildpack to buildstep, add commands to install the necessary packages that the buildpack and built
-application environment will need to stack/packages.txt and stack/prepare. Then add the buildpack Git URL to the file stack/buildpacks.txt
 
-You'll then have to re-build.
+Usage with Procfile
+-------------------
 
-## License
+If you have already defined a `Procfile` (https://devcenter.heroku.com/articles/procfile)
+like the following:
 
-MIT
+	web: python manage.py runserver 80
+
+you can use it by defining the following `Dockerfile` instead:
+
+	FROM tutum/buildstep
+	EXPOSE 80
+	CMD ["/start", "web"]
+
+Modify the `EXPOSE` and `CMD` directives with the port to be exposed and the process
+type defined in the `Procfile` used to launch your application respectively.
+
+It also works if you don't have a Procfile
+
+Then, execute the following to build the image:
+
+	docker build -t myuser/myapp .
+	docker run -d -p 80 myuser/myapp
+
+Done!
+
+
+On-the-fly usage
+----------------
+
+You can also make it run your application on the fly (without having to create or build a `Dockerfile`)
+by passing an environment variable `GIT_REPO` with your application's git repository URL.
+
+If your repository has a `Procfile` (or the buildpack you are using has a default `Procfile`), 
+you can specify the process type name as the run command.
+Otherwise, you can specify the actual command used to launch your application as the run command. For example:
+
+	# Without a Procfile
+	docker run -d -p 80 -e GIT_REPO=https://github.com/fermayo/hello-world-django.git tutum/buildstep python manage.py runserver 80
+
+	# With a Procfile (or relying on the default Procfile provided by the buildpack)
+	docker run -d -p 80 -e GIT_REPO=https://github.com/fermayo/hello-world-php.git tutum/buildstep /start web
+
+No `docker build` required!
