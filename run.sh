@@ -81,4 +81,4 @@ onexit() {
 trap onexit EXIT
 
 # Run the given command
-bash -c "$*"
+exec bash -c "$*"
