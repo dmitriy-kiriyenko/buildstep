@@ -15,6 +15,6 @@ ONBUILD ADD . /app
 ONBUILD RUN /build/builder
 
 ENV HOME /app
-WORKDIR $HOME
+WORKDIR /app
 
 ENTRYPOINT ["/run.sh"]

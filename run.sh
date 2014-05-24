@@ -59,9 +59,10 @@ env | grep '_TCP=' | sed 's/.*_PORT_\([0-9]*\)_TCP=tcp:\/\/\(.*\):\(.*\)/socat -
 
 # ## Cleanup
 
-# When a `SIGINT`, `SIGTERM` or `EXIT` is received, this action is run, killing the
-# child processes. The sleep stops STDOUT from pouring over the prompt, it
-# should probably go at some point.
+# When script is about to exit, which is usually due to main target
+# interruption, this action is run, killing the child processes. The
+# sleep stops STDOUT from pouring over the prompt, it should go at
+# some point.
 onexit() {
   echo Exiting
   echo sending SIGTERM to all processes
